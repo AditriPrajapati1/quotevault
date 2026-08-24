@@ -34,6 +34,10 @@ app.post('/api/quotes', async (req, res) => {
   res.status(201).json(quote);
 });
 
+app.get('/api/whoami', (req, res) => {
+  res.json({ instance: process.env.INSTANCE_ID || 'unknown', hostname: require('os').hostname() });
+});
+
 const PORT = process.env.PORT || 4000;
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
