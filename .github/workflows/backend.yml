@@ -1,0 +1,35 @@
+name: Backend CI/CD
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['server/**']
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/build-and-push.sh
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          IMAGE: quotevault-server
+          CONTEXT: ./server
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/deploy.sh
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          IMAGE: quotevault-server
+          CONTAINER: quotevault-server
+          HOST_PORT: 4000
+          CONTAINER_PORT: 4000
+          NETWORK_FLAG: "--network todo-network"
+          ENV_FLAGS: "-e MONGO_URI=mongodb://mongodb:27017/quotevault"
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
